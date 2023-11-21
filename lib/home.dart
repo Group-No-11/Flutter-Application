@@ -3,6 +3,8 @@ import 'package:frontend/detail.dart';
 import 'package:frontend/profile.dart';
 import 'package:frontend/search.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:camera/camera.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   runApp(const Home());
@@ -14,6 +16,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: NavigationExample(),
     );
   }
@@ -48,25 +51,22 @@ class _NavigationExampleState extends State<NavigationExample> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Skin Scanner'),
-        // leading: IconButton(
-        //   onPressed: () {
-        //     Navigator.pop(context,
-        //         MaterialPageRoute(builder: (context) => const LoginPage()));
-        //   },
-        //   icon: const Icon(
-        //     Icons.arrow_back_ios,
-        //     size: 20,
-        //     color: Color.fromARGB(255, 255, 255, 255),
-        //   ),
-        // ),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            size: 20,
+            color: Color.fromARGB(255, 255, 255, 255),
+          ),
+          onPressed: () {},
+        ),
       ),
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
-        color: const Color.fromARGB(255, 36, 105, 243),
+        color: const Color.fromARGB(255, 2, 51, 150),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20),
           child: GNav(
-            backgroundColor: const Color.fromARGB(255, 36, 105, 243),
+            backgroundColor: const Color.fromARGB(255, 2, 51, 150),
             color: Colors.white,
             activeColor: Colors.white,
             tabBackgroundColor: const Color.fromARGB(255, 105, 154, 245),
@@ -90,13 +90,93 @@ class _NavigationExampleState extends State<NavigationExample> {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  CameraController? _controller;
+  List<CameraDescription> cameras = [];
+
+  @override
+  void initState() {
+    super.initState();
+    availableCameras().then((value) {
+      cameras = value;
+      if (cameras.isNotEmpty) {
+        _initializeCamera(cameras[0]);
+      }
+    });
+  }
+
+  Future<void> _initializeCamera(CameraDescription camera) async {
+    _controller = CameraController(camera, ResolutionPreset.medium);
+    await _controller!.initialize();
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _takePhoto() async {
+    try {
+      final XFile file = await _controller!.takePicture();
+      // Handle the taken photo, e.g., save or display it.
+      // ignore: avoid_print
+      print('Photo taken: ${file.path}');
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error taking photo: $e');
+    }
+  }
+
+  Future<void> _choosePhoto() async {
+    final imagePicker = ImagePicker();
+    final XFile? image =
+        await imagePicker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      // Handle the chosen photo, e.g., display it.
+      // ignore: avoid_print
+      print('Photo chosen: ${image.path}');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Home Screen'),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          Expanded(
+            child: _controller != null
+                ? CameraPreview(_controller!)
+                : const Center(child: CircularProgressIndicator()),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              ElevatedButton(
+                onPressed: _takePhoto,
+                child: const Text('Take Photo'),
+              ),
+              ElevatedButton(
+                onPressed: _choosePhoto,
+                child: const Text('Choose Photo'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
