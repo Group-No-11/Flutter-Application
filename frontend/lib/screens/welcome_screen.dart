@@ -28,13 +28,15 @@ class WelcomeScreen extends StatelessWidget {
                         TextSpan(
                             text: 'Welcome Back!\n',
                             style: TextStyle(
-                              fontSize: 45.0,
+                              fontSize: 60.0,
                               fontWeight: FontWeight.w600,
                             )),
                         TextSpan(
                             text: '\nAI Powered Dermatology Diagnostic Tool',
                             style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 23,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
                               // height: 0,
                             ))
                       ],

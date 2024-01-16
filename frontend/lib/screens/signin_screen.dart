@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:login_signup/model/config.dart';
 import 'package:login_signup/screens/Dashboard.dart';
+// ignore: unused_import
+import 'package:login_signup/screens/home.dart';
 import 'package:login_signup/screens/signup_screen.dart';
 import 'package:login_signup/widgets/custom_scaffold.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +23,8 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  // ignore: unused_field
+  final bool _isNotValidate = false;
   late SharedPreferences prefs;
 
   @override
@@ -40,35 +44,28 @@ class _SignInScreenState extends State<SignInScreen> {
         "email": emailController.text,
         "password": passwordController.text
       };
-      try {
-        var response = await http.post(
-          Uri.parse(login),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode(regBody),
-        );
 
-        if (response.statusCode == 200) {
-          var jsonResponse = jsonDecode(response.body);
-          if (jsonResponse['status']) {
-            var myToken = jsonResponse['token'];
-            prefs.setString('token', myToken);
-            // ignore: use_build_context_synchronously
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Dashboard(
-                  token: myToken,
-                ),
-              ),
-            );
-          } else {
-            print('Authentication failed: ${jsonResponse['message']}');
-          }
-        } else {
-          print('Request failed with status: ${response.statusCode}');
-        }
-      } catch (e) {
-        print('Error: $e');
+      var response = await http.post(
+        Uri.parse(login),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(regBody),
+      );
+      var jsonResponse = jsonDecode(response.body);
+      if (jsonResponse['status']) {
+        var myToken = jsonResponse['token'];
+        prefs.setString('token', myToken);
+        // ignore: use_build_context_synchronously
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Dashboard(
+              token: myToken,
+            ),
+          ),
+        );
+      } else {
+        // ignore: avoid_print
+        print('Somthing went wrong....!');
       }
     }
   }
@@ -127,6 +124,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             return 'Enter valid email';
                           }
                         },
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         decoration: InputDecoration(
                           label: const Text('Email'),
                           hintText: 'Enter Email',
@@ -160,6 +158,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           }
                           return null;
                         },
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         decoration: InputDecoration(
                           label: const Text('Password'),
                           hintText: 'Enter Password',
@@ -205,15 +204,15 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                             ],
                           ),
-                          GestureDetector(
-                            child: Text(
-                              'Forget password?',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: lightColorScheme.primary,
-                              ),
-                            ),
-                          ),
+                          // GestureDetector(
+                          //   child: Text(
+                          //     'Forget password?',
+                          //     style: TextStyle(
+                          //       fontWeight: FontWeight.bold,
+                          //       color: lightColorScheme.primary,
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                       const SizedBox(
@@ -223,6 +222,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
+                            LoginUser();
                             if (_formSignInKey.currentState!.validate() &&
                                 rememberPassword) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -237,7 +237,11 @@ class _SignInScreenState extends State<SignInScreen> {
                                         'Please agree to the processing of personal data')),
                               );
                             }
-                            LoginUser();
+
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const Home()));
                           },
                           child: const Text('Sign up'),
                         ),
